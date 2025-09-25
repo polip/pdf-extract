@@ -3,6 +3,7 @@ import csv
 import sys
 from pathlib import Path
 import unicodedata
+import re
 
 
 def extract_tables_from_pdf(pdf_path, output_csv=None):
@@ -39,9 +40,15 @@ def extract_tables_from_pdf(pdf_path, output_csv=None):
                     normalized_row = []
                     for cell in row:
                         if isinstance(cell, str):
-                            # Clean control characters and normalize Unicode
+                            # Remove control characters and fix encoding issues
                             cleaned_cell = ''.join(char for char in cell if unicodedata.category(char)[0] != 'C' or char in '\t\n\r')
+                            # Remove common PDF extraction artifacts
+                            cleaned_cell = re.sub(r'[^\w\s\u0100-\u017F\u1EA0-\u1EF9.,;:!?()-]', '', cleaned_cell)
+                            # Normalize Unicode
                             normalized_cell = unicodedata.normalize('NFC', cleaned_cell)
+                            # Additional cleanup for garbled text
+                            if len(normalized_cell) > 0 and not re.match(r'^[A-Za-z0-9\s\u0100-\u017F\u1EA0-\u1EF9.,;:!?()-]+$', normalized_cell):
+                                normalized_cell = ''  # Skip obviously corrupted cells
                             normalized_row.append(normalized_cell)
                         else:
                             normalized_row.append(cell)
