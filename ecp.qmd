@@ -1,0 +1,31 @@
+
+
+```{r}
+library(tidyverse)
+
+ecp <- read_csv("RPT-IEC-09_extracted_tables_0_5.csv", skip = 1) |> 
+  janitor::clean_names() |> 
+  filter(rbr !="RBR.")
+
+ecp <- ecp |> 
+  select(-x1_2) |> 
+  rename(pdf_page=x1_1)
+
+```
+
+```{r}
+ecp |> glimpse()
+
+```
+
+
+```{r}
+ecp |> count(vrsta_zgrade_prema_pravilniku_o_energetskom_pregledu_zgrade_i_energetskom_certificiranju,sort=T)
+
+```
+
+
+```{r}
+ecp |> count(naziv_zgrade,sort=T)
+
+```

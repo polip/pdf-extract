@@ -3,6 +3,9 @@
 library(pdftools)
 library(tabulapdf)
 
+# Set locale to handle Croatian characters properly
+Sys.setlocale("LC_ALL", "en_US.UTF-8")
+
 extract_tables_from_pdf <- function(pdf_path, output_csv = NULL) {
   if (!file.exists(pdf_path)) {
     cat("Error: PDF file '", pdf_path, "' not found\n", sep = "")
@@ -20,7 +23,8 @@ extract_tables_from_pdf <- function(pdf_path, output_csv = NULL) {
   
   for (page_num in 1:pages_to_process) {
     tryCatch({
-      tables <- extract_tables(pdf_path, pages = page_num, method = "lattice")
+      # Extract tables with proper encoding handling
+      tables <- extract_tables(pdf_path, pages = page_num, method = "lattice", encoding = "UTF-8")
       
       if (length(tables) > 0) {
         cat("Found", length(tables), "table(s) on page", page_num, "\n")
@@ -31,7 +35,17 @@ extract_tables_from_pdf <- function(pdf_path, output_csv = NULL) {
           if (is.matrix(table_data) && nrow(table_data) > 0) {
             for (row_idx in 1:nrow(table_data)) {
               row_counter <- row_counter + 1
-              row_data <- c(page_num, table_num, table_data[row_idx, ])
+              # Convert to UTF-8 and handle Croatian characters properly
+              row_values <- table_data[row_idx, ]
+              row_values <- sapply(row_values, function(x) {
+                if (is.character(x)) {
+                  Encoding(x) <- "UTF-8"
+                  return(x)
+                } else {
+                  return(as.character(x))
+                }
+              }, USE.NAMES = FALSE)
+              row_data <- c(page_num, table_num, row_values)
               all_tables[[row_counter]] <- row_data
             }
           }
@@ -41,7 +55,7 @@ extract_tables_from_pdf <- function(pdf_path, output_csv = NULL) {
       cat("Warning: Could not extract tables from page", page_num, ":", e$message, "\n")
       
       tryCatch({
-        tables <- extract_tables(pdf_path, pages = page_num, method = "stream")
+        tables <- extract_tables(pdf_path, pages = page_num, method = "stream", encoding = "UTF-8")
         
         if (length(tables) > 0) {
           cat("Found", length(tables), "table(s) on page", page_num, "(using stream method)\n")
@@ -52,7 +66,17 @@ extract_tables_from_pdf <- function(pdf_path, output_csv = NULL) {
             if (is.matrix(table_data) && nrow(table_data) > 0) {
               for (row_idx in 1:nrow(table_data)) {
                 row_counter <- row_counter + 1
-                row_data <- c(page_num, table_num, table_data[row_idx, ])
+                # Convert to UTF-8 and handle Croatian characters properly
+                row_values <- table_data[row_idx, ]
+                row_values <- sapply(row_values, function(x) {
+                  if (is.character(x)) {
+                    Encoding(x) <- "UTF-8"
+                    return(x)
+                  } else {
+                    return(as.character(x))
+                  }
+                }, USE.NAMES = FALSE)
+                row_data <- c(page_num, table_num, row_values)
                 all_tables[[row_counter]] <- row_data
               }
             }

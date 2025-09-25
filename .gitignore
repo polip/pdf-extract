@@ -6,6 +6,7 @@ __pycache__/
 # C extensions
 *.so
 File RPT-IEC-09.pdf
+RPT-IEC-09.pdf
 # Distribution / packaging
 .Python
 build/

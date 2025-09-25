@@ -2,6 +2,7 @@ import fitz
 import csv
 import sys
 from pathlib import Path
+import unicodedata
 
 
 def extract_tables_from_pdf(pdf_path, output_csv=None):
@@ -11,6 +12,9 @@ def extract_tables_from_pdf(pdf_path, output_csv=None):
         return
     
     doc = fitz.open(pdf_path)
+    
+    # Ensure proper text extraction with Unicode support
+    fitz.TOOLS.set_small_glyph_heights(True)
     all_tables = []
     
     print(f"Processing {len(doc)} pages...")
@@ -29,9 +33,19 @@ def extract_tables_from_pdf(pdf_path, output_csv=None):
                 # Extract table data
                 table_data = table.extract()
                 
-                # Add page and table info to each row
+                # Add page and table info to each row with proper Unicode handling
                 for row in table_data:
-                    all_tables.append([page_num + 1, table_num + 1] + row)
+                    # Normalize Unicode characters to handle Croatian letters properly
+                    normalized_row = []
+                    for cell in row:
+                        if isinstance(cell, str):
+                            # Clean control characters and normalize Unicode
+                            cleaned_cell = ''.join(char for char in cell if unicodedata.category(char)[0] != 'C' or char in '\t\n\r')
+                            normalized_cell = unicodedata.normalize('NFC', cleaned_cell)
+                            normalized_row.append(normalized_cell)
+                        else:
+                            normalized_row.append(cell)
+                    all_tables.append([page_num + 1, table_num + 1] + normalized_row)
     
     doc.close()
     
