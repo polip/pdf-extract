@@ -15,7 +15,7 @@ def extract_tables_from_pdf(pdf_path, output_csv=None):
     
     print(f"Processing {len(doc)} pages...")
     
-    for page_num in range(len(doc)):
+    for page_num in range(0,5):
         page = doc.load_page(page_num)
         
         # Find tables on the page
@@ -41,7 +41,7 @@ def extract_tables_from_pdf(pdf_path, output_csv=None):
     
     # Save to CSV
     if output_csv is None:
-        output_csv = Path(pdf_path).stem + "_extracted_tables.csv"
+        output_csv = Path(pdf_path).stem + "_extracted_tables_0_5.csv"
     
     with open(output_csv, 'w', newline='', encoding='utf-8') as csvfile:
         writer = csv.writer(csvfile)
